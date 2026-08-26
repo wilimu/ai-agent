@@ -1,3 +1,4 @@
+use schemars::JsonSchema;
 use serde::Deserialize;
 
 pub fn calculate(
@@ -20,7 +21,7 @@ pub fn calculate(
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, JsonSchema)]
 pub struct CalculatorArgs {
     pub operator: String,
     pub first_number: f64,

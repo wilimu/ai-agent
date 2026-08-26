@@ -13,3 +13,5 @@ pub const CLAUDE_HAIHU: &'static str = "anthropic/claude-3-haiku"; //price: 0.25
 pub const GPT_OSS_120B: &'static str = "openai/gpt-oss-120b"; //price: 0.03/0.17
 
 pub const DEEPSEEK_V4_FLASH: &'static str = "deepseek/deepseek-v4-flash"; //price: 0.06146/0.1229
+
+pub const GPT_4O_MINI: &str = "openai/gpt-4o-mini";
