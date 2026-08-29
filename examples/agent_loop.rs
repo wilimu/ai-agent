@@ -15,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
     // build_toolbox 现在是 async 的：它会顺便把 expense_mcp_server
     // 拉起来、握手、拿到它暴露的工具列表，跟 calculator / web_search
     // 一起塞进同一个工具箱里
-    let toolbox = ai_agent::tools::build_tool_box();
+    let toolbox = ai_agent::tools::build_tool_box().await?;
 
     // 当前时间
     let now = Local::now();
@@ -86,7 +86,7 @@ async fn main() -> anyhow::Result<()> {
         toolbox,
     )
     .await?;
-    println!("回答: {result}");
+    tracing::info!("回答: {result}");
 
     // // 测试 1：查询某个月某个分类的花销（应该会触发 get_summary 或 list_expenses）
     // println!("\n=== 测试 1：查询七月 Food 分类花销 ===");

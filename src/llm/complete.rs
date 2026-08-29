@@ -44,7 +44,7 @@ pub async fn chat_complete(
         .values()
         .filter_map(|t| match t.definition() {
             Ok(def) => Some(def),
-            Err(err) => None,
+            Err(_) => None,
         })
         .collect();
 
@@ -68,7 +68,7 @@ pub async fn chat_complete(
             .ok_or_else(|| anyhow::anyhow!("no choicees"))?
             .message;
 
-        tracing::info!("message: {:?}", message);
+        tracing::info!("message: {:#?}", message);
         if let Some(tool_calls) = message.tool_calls {
             messages.push(
                 ChatCompletionRequestAssistantMessageArgs::default()
