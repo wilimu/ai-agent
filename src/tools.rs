@@ -1,8 +1,5 @@
 use std::{collections::HashMap, sync::Arc, vec};
 
-use async_openai::types::chat::ChatCompletionTools;
-use calculator::definition::calculator_tool_definition;
-use web_search::definition::web_search_tool_definition;
 
 use crate::tools::{
     calculator::calculator_impl::CalculatorTool,
@@ -18,7 +15,7 @@ pub mod web_search;
 
 pub type ToolBox = HashMap<String, Box<dyn Tool>>;
 
-pub async fn build_tool_box() -> anyhow::Result<ToolBox> {
+pub async fn build_toolbox() -> anyhow::Result<ToolBox> {
     let mut tools: Vec<Box<dyn Tool>> = vec![Box::new(CalculatorTool), Box::new(WebSearchTool)];
 
     let mcp_client = Arc::new(McpClient::connect().await?);

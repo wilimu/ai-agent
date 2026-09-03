@@ -1,10 +1,10 @@
 use async_openai::types::chat::{
-    ChatCompletionRequestSystemMessage, ChatCompletionRequestSystemMessageArgs,
-    ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequest,
+    ChatCompletionRequestSystemMessageArgs,
+    ChatCompletionRequestUserMessageArgs,
     CreateChatCompletionRequestArgs, ResponseFormat, ResponseFormatJsonSchema,
 };
 
-use crate::models::action_plan::{self, ActionPlan};
+use crate::models::action_plan::ActionPlan;
 
 pub async fn chat_complete_structured(
     model: &str,

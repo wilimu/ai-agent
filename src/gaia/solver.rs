@@ -1,4 +1,3 @@
-use std::time::Duration;
 
 use async_openai::types::chat::{
     ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,

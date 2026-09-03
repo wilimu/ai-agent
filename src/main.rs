@@ -1,11 +1,11 @@
-use std::{any, print};
+use std::print;
 
 use ai_agent::{
     constant,
-    llm::{complete, structured},
+    llm::structured,
 };
 use anyhow::Ok;
-use tracing::{Level, subscriber};
+use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
 #[tokio::main]

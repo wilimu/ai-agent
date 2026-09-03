@@ -1,12 +1,12 @@
 use std::print;
 
 use async_openai::types::chat::{
-    ChatCompletionRequestSystemMessage, ChatCompletionRequestSystemMessageArgs,
-    ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequest,
+    ChatCompletionRequestSystemMessageArgs,
+    ChatCompletionRequestUserMessageArgs,
     CreateChatCompletionRequestArgs,
 };
 use async_stream::stream;
-use backon::{ExponentialBuilder, Retry, Retryable};
+use backon::{ExponentialBuilder, Retryable};
 use futures::{Stream, StreamExt};
 
 fn chat_stream(
@@ -44,11 +44,10 @@ fn chat_stream(
         while let Some(response_result) = stream.next().await {
             match response_result {
                 Ok(chunk) => {
-                    if let Some(choice) = chunk.choices.first() {
-                        if let Some(new_text) = &choice.delta.content {
+                    if let Some(choice) = chunk.choices.first()
+                        && let Some(new_text) = &choice.delta.content {
                             yield Ok(new_text.clone())
                         }
-                    }
                 }
                 Err(err) => yield Err(err.into()),
             }

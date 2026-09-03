@@ -6,7 +6,7 @@ use ai_agent::{
         complete::{self, chat_complete},
         structured,
     },
-    tools::build_tool_box,
+    tools::build_toolbox,
 };
 use anyhow::Ok;
 use tracing::{Level, subscriber};
@@ -31,7 +31,7 @@ async fn main() -> anyhow::Result<()> {
 你的训练数据有截止日期，可能已经过时，请始终优先信任工具返回的内容。"#,
         ),
         "2026世界杯决赛的比分是？",
-        build_tool_box().await?,
+        build_toolbox().await?,
     )
     .await?;
     print!("Response: {plan:#?}.");

@@ -1,8 +1,7 @@
 use async_openai::types::chat::{
-    ChatCompletionTool, ChatCompletionTools, FunctionObject, FunctionObjectArgs,
+    ChatCompletionTool, ChatCompletionTools, FunctionObjectArgs,
 };
 use schemars::schema_for;
-use serde_json::json;
 
 use crate::tools::web_search::execute::WebSearchArgs;
 

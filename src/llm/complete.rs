@@ -1,18 +1,14 @@
-use std::env::Args;
 
 use async_openai::types::chat::{
-    ChatCompletionMessageToolCall, ChatCompletionMessageToolCalls,
-    ChatCompletionRequestAssistantMessageArgs, ChatCompletionRequestSystemMessage,
+    ChatCompletionMessageToolCalls,
+    ChatCompletionRequestAssistantMessageArgs,
     ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestToolMessageArgs,
-    ChatCompletionRequestUserMessageArgs, ChatCompletionTool, ChatCompletionTools,
-    CreateChatCompletionRequest, CreateChatCompletionRequestArgs,
+    ChatCompletionRequestUserMessageArgs, ChatCompletionTools, CreateChatCompletionRequestArgs,
 };
 
-use crate::tools::{
-    ToolBox,
-    calculator::execute::{CalculatorArgs, calculate},
-    tool,
-    web_search::execute::{WebSearchArgs, search_web},
+use crate::{
+    agent::ExecutionContext,
+    tools::ToolBox,
 };
 
 pub async fn chat_complete(
@@ -42,10 +38,7 @@ pub async fn chat_complete(
 
     let tool_definitions: Vec<ChatCompletionTools> = tool_box
         .values()
-        .filter_map(|t| match t.definition() {
-            Ok(def) => Some(def),
-            Err(_) => None,
-        })
+        .filter_map(|t| t.definition().ok())
         .collect();
 
     loop {
@@ -67,7 +60,7 @@ pub async fn chat_complete(
             .next()
             .ok_or_else(|| anyhow::anyhow!("no choicees"))?
             .message;
-
+        let mut execution_context = ExecutionContext::default();
         tracing::info!("message: {:#?}", message);
         if let Some(tool_calls) = message.tool_calls {
             messages.push(
@@ -84,14 +77,16 @@ pub async fn chat_complete(
                         tracing::info!("Tool call:{function_name}({arguments})");
 
                         let function_result = match tool_box.get(&function_name) {
-                            Some(tool) => match tool.execute(&arguments).await {
-                                Ok(r) => r,
-                                Err(err) => {
-                                    let msg = format!("Tool execution error:{err}");
-                                    tracing::error!(msg);
-                                    msg
+                            Some(tool) => {
+                                match tool.execute(&arguments, &mut execution_context).await {
+                                    Ok(r) => r,
+                                    Err(err) => {
+                                        let msg = format!("Tool execution error:{err}");
+                                        tracing::error!(msg);
+                                        msg
+                                    }
                                 }
-                            },
+                            }
                             None => {
                                 let msg = format!("Tool {function_name} not found");
                                 tracing::error!(msg);

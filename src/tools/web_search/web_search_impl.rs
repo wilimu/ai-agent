@@ -2,11 +2,11 @@ use std::format;
 
 use serde_json::Value;
 
-use crate::tools::{
-    tool::Tool,
-    web_search::{
-        self,
-        execute::{WebSearchArgs, search_web},
+use crate::{
+    agent::ExecutionContext,
+    tools::{
+        tool::Tool,
+        web_search::execute::{WebSearchArgs, search_web},
     },
 };
 
@@ -27,7 +27,11 @@ impl Tool for WebSearchTool {
             .expect("Failed to serialize WebSearchArgs schema.")
     }
 
-    async fn execute(&self, args_json: &str) -> anyhow::Result<String> {
+    async fn execute(
+        &self,
+        args_json: &str,
+        _context: &mut ExecutionContext,
+    ) -> anyhow::Result<String> {
         let args: WebSearchArgs = serde_json::from_str(args_json)?;
 
         match search_web(args).await {

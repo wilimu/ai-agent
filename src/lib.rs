@@ -1,3 +1,4 @@
+pub mod agent;
 pub mod constant;
 pub mod gaia;
 pub mod llm;

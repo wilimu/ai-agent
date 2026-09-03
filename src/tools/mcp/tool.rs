@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use serde_json::Value;
 
-use crate::tools::{mcp::client::McpClient, tool::Tool};
+use crate::{
+    agent::ExecutionContext,
+    tools::{mcp::client::McpClient, tool::Tool},
+};
 
 /// 把一个 MCP 工具包装成 Agent 认识的 Tool trait。
 /// 一个 McpTool 对应 MCP Server 的 list_tools() 里的一条工具信息，
@@ -46,7 +49,11 @@ impl Tool for McpTool {
         self.parameters.clone()
     }
 
-    async fn execute(&self, args_json: &str) -> anyhow::Result<String> {
+    async fn execute(
+        &self,
+        args_json: &str,
+        _context: &mut ExecutionContext,
+    ) -> anyhow::Result<String> {
         // 大模型给的参数是 JSON 字符串，先解析成 Value，
         // 再转发给 McpClient::call_tool —— 之后的事情
         // （发给 MCP Server，Server 再转发给 expense-tracker-api）

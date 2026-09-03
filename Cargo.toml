@@ -15,6 +15,10 @@ path = "examples/tool_call_complete.rs"
 name = "agent_loop"
 path = "examples/agent_loop.rs"
 
+[[example]]
+name = "agent_run"
+path = "examples/agent_run.rs"
+
 [dependencies]
 anyhow = "1.0.104"
 async-openai = { version = "0.41.3", features = ["chat-completion", "embedding"] }
@@ -32,3 +36,4 @@ serde_json = "1.0.151"
 tokio = { version = "1.53.1", features = ["full"] }
 tracing = "0.1.44"
 tracing-subscriber = "0.3.23"
+uuid = { version = "1.26.0", features = ["v4"] }

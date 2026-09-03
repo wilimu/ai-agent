@@ -1,5 +1,5 @@
 use crate::gaia::{
-    models::{GaiaEvalResult, GaiaOutput, GaiaRow},
+    models::{GaiaEvalResult, GaiaRow},
     solver::solve_problem_with_retry,
 };
 

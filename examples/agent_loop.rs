@@ -15,7 +15,7 @@ async fn main() -> anyhow::Result<()> {
     // build_toolbox 现在是 async 的：它会顺便把 expense_mcp_server
     // 拉起来、握手、拿到它暴露的工具列表，跟 calculator / web_search
     // 一起塞进同一个工具箱里
-    let toolbox = ai_agent::tools::build_tool_box().await?;
+    let toolbox = ai_agent::tools::build_toolbox().await?;
 
     // 当前时间
     let now = Local::now();

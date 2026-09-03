@@ -1,5 +1,5 @@
 use async_openai::types::chat::{
-    ChatCompletionTool, ChatCompletionTools, FunctionObject, FunctionObjectArgs,
+    ChatCompletionTool, ChatCompletionTools, FunctionObjectArgs,
 };
 use serde_json::json;
 
