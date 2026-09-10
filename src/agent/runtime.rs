@@ -5,9 +5,10 @@ use async_openai::types::chat::{
     ChatCompletionMessageToolCall, ChatCompletionMessageToolCalls,
     ChatCompletionRequestAssistantMessageArgs, ChatCompletionRequestMessage,
     ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestToolMessageArgs,
-    ChatCompletionRequestUserMessageArgs,
+    ChatCompletionRequestUserMessageArgs, ChatCompletionTool,
     ChatCompletionToolChoiceOption::{self},
-    ChatCompletionTools, CreateChatCompletionRequestArgs, FunctionCall, ToolChoiceOptions,
+    ChatCompletionTools, CreateChatCompletionRequestArgs, FunctionCall, FunctionObjectArgs,
+    ToolChoiceOptions,
 };
 use backon::{ExponentialBuilder, Retryable};
 
@@ -25,6 +26,10 @@ pub struct AgentResult {
     pub context: ExecutionContext,
 }
 
+pub struct StructuredAgentResult<T> {
+    pub output: T,
+    pub context: ExecutionContext,
+}
 pub struct Agent {
     pub model: String,
     pub instruction: Option<String>,
@@ -33,10 +38,14 @@ pub struct Agent {
 }
 
 impl Agent {
-    pub fn new(model: String, instruction: Option<String>, toolbox: Arc<ToolBox>) -> Self {
+    pub fn new(
+        model: impl Into<String>,
+        instruction: Option<impl Into<String>>,
+        toolbox: Arc<ToolBox>,
+    ) -> Self {
         Agent {
-            model,
-            instruction,
+            model: model.into(),
+            instruction: instruction.map(Into::into),
             toolbox,
             max_steps: 10,
         }
@@ -138,6 +147,121 @@ impl Agent {
                     context,
                 });
             }
+            context.increment_step();
+        }
+    }
+
+    pub async fn run_structured<T>(
+        &self,
+        user_input: &str,
+    ) -> anyhow::Result<StructuredAgentResult<T>>
+    where
+        T: schemars::JsonSchema + serde::de::DeserializeOwned,
+    {
+        let mut context = ExecutionContext::default();
+        let event = Event::new(
+            context.execution_id.clone(),
+            "user",
+            vec![Message {
+                role: "user".to_string(),
+                content: user_input.to_string(),
+            }],
+        );
+        context.add_event(event);
+
+        let client = async_openai::Client::new();
+
+        let tool_definitions: Vec<ChatCompletionTools> = self
+            .toolbox
+            .values()
+            .filter_map(|t| match t.definition() {
+                Ok(def) => Some(def),
+                Err(e) => {
+                    tracing::warn!(
+                        "skip tool {}, failed to get its definition: {:#?}",
+                        t.name(),
+                        e
+                    );
+                    None
+                }
+            })
+            .collect();
+
+        loop {
+            if context.current_step > self.max_steps {
+                anyhow::bail!(
+                    "agent exceed max the maximum of {} steps without final answer.",
+                    self.max_steps
+                )
+            }
+
+            let messages = self.build_messages(&context)?;
+            let request = CreateChatCompletionRequestArgs::default()
+                .model(self.model.clone())
+                .messages(messages)
+                .tools(tool_definitions.clone())
+                .tool_choice(ChatCompletionToolChoiceOption::Mode(
+                    ToolChoiceOptions::Required,
+                ))
+                .max_tokens(2048u32)
+                .build()?;
+
+            let response = (|| async { client.chat().create(request.clone()).await })
+                .retry(ExponentialBuilder::default().with_max_times(3))
+                .await?;
+            if let Some(usage) = &response.usage {
+                context.usage.add(
+                    usage.prompt_tokens,
+                    usage.completion_tokens,
+                    usage.total_tokens,
+                );
+            }
+
+            let message = response
+                .choices
+                .into_iter()
+                .next()
+                .ok_or_else(|| anyhow!("no choice in response."))?
+                .message;
+
+            let tool_calls = message.tool_calls.ok_or_else(|| {
+                anyhow::anyhow!("nodel return no tool calls despite tool_choice=Required.")
+            })?;
+
+            self.record_tool_calls(&mut context, &tool_calls);
+
+            let final_call = tool_calls.iter().find_map(|tool_call| match tool_call {
+                ChatCompletionMessageToolCalls::Function(f)
+                    if f.function.name == "final_answer" =>
+                {
+                    Some(f)
+                }
+
+                _ => None,
+            });
+            if let Some(final_call) = final_call {
+                let raw_arguments = final_call.function.arguments.clone();
+                let parsed = serde_json::from_str(&raw_arguments)?;
+
+                context.add_event(Event::new(
+                    context.execution_id.clone(),
+                    "tool",
+                    vec![ContentItem::ToolResult {
+                        tool_call_id: final_call.id.clone(),
+                        name: "final_answer".to_string(),
+                        status: ToolResultStatus::Success,
+                        content: raw_arguments.clone(),
+                    }],
+                ));
+
+                context.final_result = Some(raw_arguments);
+
+                return Ok(StructuredAgentResult {
+                    output: parsed,
+                    context,
+                });
+            }
+            self.execute_tool_calls(&mut context, &tool_calls).await;
             context.increment_step();
         }
     }
@@ -308,4 +432,19 @@ impl Agent {
         //     let raw_arguments = fc.function.arguments.clone();
         //     let parsed = serde_json::from_str(&raw_arguments);
     }
+}
+
+fn final_answer_tool_definnition<T: schemars::JsonSchema>() -> anyhow::Result<ChatCompletionTools> {
+    let schema = schemars::schema_for!(T);
+    let schema_json = serde_json::to_value(schema)?;
+
+    let function = FunctionObjectArgs::default()
+        .name("final_answer")
+        .description("return the final stuctured answer matching the require schema.")
+        .parameters(schema_json)
+        .build()
+        .map_err(|e| anyhow!("failed to build final_answer tool definition: {e}."))?;
+    Ok(ChatCompletionTools::Function(ChatCompletionTool {
+        function,
+    }))
 }

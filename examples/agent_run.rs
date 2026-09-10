@@ -67,6 +67,12 @@ async fn main() -> anyhow::Result<()> {
         result.context.events.len(),
         result.context.execution_id
     );
+    println!(
+        "token 用量：prompt={} completion={} total={}",
+        result.context.usage.prompt_tokens,
+        result.context.usage.completion_tokens,
+        result.context.usage.total_tokens
+    );
 
     tracing::info!("{:#?}", result.context);
 
