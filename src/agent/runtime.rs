@@ -171,7 +171,7 @@ impl Agent {
 
         let client = async_openai::Client::new();
 
-        let tool_definitions: Vec<ChatCompletionTools> = self
+        let mut tool_definitions: Vec<ChatCompletionTools> = self
             .toolbox
             .values()
             .filter_map(|t| match t.definition() {
@@ -186,6 +186,7 @@ impl Agent {
                 }
             })
             .collect();
+        tool_definitions.push(final_answer_tool_definition::<T>()?);
 
         loop {
             if context.current_step > self.max_steps {
@@ -434,7 +435,7 @@ impl Agent {
     }
 }
 
-fn final_answer_tool_definnition<T: schemars::JsonSchema>() -> anyhow::Result<ChatCompletionTools> {
+fn final_answer_tool_definition<T: schemars::JsonSchema>() -> anyhow::Result<ChatCompletionTools> {
     let schema = schemars::schema_for!(T);
     let schema_json = serde_json::to_value(schema)?;
 

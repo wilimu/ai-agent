@@ -48,9 +48,9 @@ pub struct SearchResult {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TavilyResponse {
-    results: Vec<SearchResult>,
+    pub results: Vec<SearchResult>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    answer: Option<String>,
+    pub answer: Option<String>,
 }
 
 pub async fn search_web(args: WebSearchArgs) -> anyhow::Result<TavilyResponse> {

@@ -1,4 +1,4 @@
-use std::{result, sync::Arc};
+use std::sync::Arc;
 
 use async_openai::types::chat::{
     ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs,

@@ -19,3 +19,5 @@ pub const GPT_4O_MINI: &str = "openai/gpt-4o-mini";
 pub const GEMINI_FLASH: &str = "google/gemini-3.8-flash"; //$0.75 / $3.75
 
 pub const GEMMA_A4B: &str = "google/gemma-4-26b-a4b-it:free"; //free;tool
+
+pub const OPENAI_TEXT_EMBEDDING_SMALL: &str = "openai/text-embedding-3-small";

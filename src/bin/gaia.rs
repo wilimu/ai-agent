@@ -1,4 +1,4 @@
-use std::{collections::HashMap, print, sync::Arc, time::Duration};
+use std::{collections::HashMap, print, sync::Arc};
 
 use ai_agent::{
     constant,
@@ -10,19 +10,10 @@ use ai_agent::{
     llm::semaphore,
     tools::build_toolbox,
 };
-use async_openai::types::chat::ChatCompletionAudioFormat::Aac;
 use std::io::{self, Write};
-use tokio::{task::JoinSet, time::timeout};
+use tokio::task::JoinSet;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
-
-const MODELS: &[&str] = &[
-    constant::GEMMA_4_26B_FREE,
-    constant::GPT_OSS_20B_FREE,
-    constant::GPT_OSS_120B,
-    constant::DEEPSEEK_V4_FLASH,
-    constant::CLAUDE_HAIHU,
-];
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
