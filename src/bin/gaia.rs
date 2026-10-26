@@ -17,7 +17,6 @@ use tracing_subscriber::FmtSubscriber;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    print!("starting");
     io::stdout().flush().unwrap();
 
     dotenvy::dotenv()?;

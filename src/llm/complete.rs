@@ -1,15 +1,10 @@
-
 use async_openai::types::chat::{
-    ChatCompletionMessageToolCalls,
-    ChatCompletionRequestAssistantMessageArgs,
+    ChatCompletionMessageToolCalls, ChatCompletionRequestAssistantMessageArgs,
     ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestToolMessageArgs,
     ChatCompletionRequestUserMessageArgs, ChatCompletionTools, CreateChatCompletionRequestArgs,
 };
 
-use crate::{
-    agent::ExecutionContext,
-    tools::ToolBox,
-};
+use crate::{agent::ExecutionContext, tools::ToolBox};
 
 pub async fn chat_complete(
     model: &str,
@@ -20,6 +15,8 @@ pub async fn chat_complete(
     let client = async_openai::Client::new();
 
     let mut messages = vec![];
+
+    let mut execution_context = ExecutionContext::default();
 
     if let Some(system) = system {
         messages.push(
@@ -60,7 +57,6 @@ pub async fn chat_complete(
             .next()
             .ok_or_else(|| anyhow::anyhow!("no choicees"))?
             .message;
-        let mut execution_context = ExecutionContext::default();
         tracing::info!("message: {:#?}", message);
         if let Some(tool_calls) = message.tool_calls {
             messages.push(
