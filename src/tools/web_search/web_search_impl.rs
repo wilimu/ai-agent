@@ -5,7 +5,7 @@ use serde_json::Value;
 use crate::{
     agent::ExecutionContext,
     tools::{
-        tool::Tool,
+        Tool,
         web_search::execute::{WebSearchArgs, search_web},
     },
 };
@@ -30,7 +30,7 @@ impl Tool for WebSearchTool {
     async fn execute(
         &self,
         args_json: &str,
-        _context: &mut ExecutionContext,
+        _context: &ExecutionContext,
     ) -> anyhow::Result<String> {
         let args: WebSearchArgs = serde_json::from_str(args_json)?;
 

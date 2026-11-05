@@ -23,15 +23,24 @@ path = "examples/agent_run.rs"
 name = "search_web"
 path ="examples/search_web.rs"
 
+[[example]]
+name = "file_explorer"
+path ="examples/file_explorer.rs"
+
 [dependencies]
 anyhow = "1.0.104"
 async-openai = { version = "0.41.3", features = ["chat-completion", "embedding"] }
 async-stream = "0.3.6"
 async-trait = "0.1.92"
 backon = "1.6.0"
+base64 = "0.23.1"
+calamine = "0.38.0"
 chrono = "0.4.45"
+csv = "1.4.0"
 dotenvy = "0.15.7"
 futures = "0.3.34"
+image = "0.25.10"
+pdfium-render = "0.9.5"
 reqwest = { version = "0.13.4", features = ["json"] }
 rmcp = { version = "3.1.4", features = ["client", "server", "macros", "transport-child-process", "transport-io"] }
 schemars = "1.2.2"
@@ -42,3 +51,4 @@ tokio = { version = "1.53.1", features = ["full"] }
 tracing = "0.1.44"
 tracing-subscriber = "0.3.23"
 uuid = { version = "1.26.0", features = ["v4"] }
+zip = "9.2.0"

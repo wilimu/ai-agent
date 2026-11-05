@@ -4,7 +4,7 @@ use serde_json::Value;
 
 use crate::{
     agent::ExecutionContext,
-    tools::{mcp::client::McpClient, tool::Tool},
+    tools::{mcp::client::McpClient, Tool},
 };
 
 /// 把一个 MCP 工具包装成 Agent 认识的 Tool trait。
@@ -52,7 +52,7 @@ impl Tool for McpTool {
     async fn execute(
         &self,
         args_json: &str,
-        _context: &mut ExecutionContext,
+        _context: &ExecutionContext,
     ) -> anyhow::Result<String> {
         // 大模型给的参数是 JSON 字符串，先解析成 Value，
         // 再转发给 McpClient::call_tool —— 之后的事情

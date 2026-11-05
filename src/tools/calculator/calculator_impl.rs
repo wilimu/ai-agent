@@ -4,7 +4,7 @@ use crate::{
     agent::ExecutionContext,
     tools::{
         calculator::execute::{CalculatorArgs, calculate},
-        tool::Tool,
+        Tool,
     },
 };
 
@@ -28,7 +28,7 @@ impl Tool for CalculatorTool {
     async fn execute(
         &self,
         args_json: &str,
-        _context: &mut ExecutionContext,
+        _context: &ExecutionContext,
     ) -> anyhow::Result<String> {
         let args: CalculatorArgs = serde_json::from_str(args_json)?;
         let result = calculate(&args.operator, args.first_number, args.second_number);
