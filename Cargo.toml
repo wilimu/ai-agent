@@ -27,6 +27,10 @@ path ="examples/search_web.rs"
 name = "file_explorer"
 path ="examples/file_explorer.rs"
 
+[[example]]
+name = "test_context_optimizer"
+path ="examples/test_context_optimizer.rs"
+
 [dependencies]
 anyhow = "1.0.104"
 async-openai = { version = "0.41.3", features = ["chat-completion", "embedding"] }
