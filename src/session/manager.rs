@@ -1,0 +1,69 @@
+use std::{
+    collections::{HashMap, hash_map::Entry},
+    sync::Mutex,
+};
+
+use crate::session::model::Session;
+
+#[async_trait::async_trait]
+pub trait SessionManager: Send + Sync {
+    async fn create(&self, session_id: &str, user_id: Option<&str>) -> anyhow::Result<Session>;
+    async fn get(&self, session_id: &str) -> anyhow::Result<Option<Session>>;
+    async fn save(&self, session: Session) -> anyhow::Result<()>;
+    async fn get_or_create(
+        &self,
+        session_id: &str,
+        user_id: Option<&str>,
+    ) -> anyhow::Result<Session>;
+}
+
+pub struct InMemorySessionManager {
+    pub sessions: Mutex<HashMap<String, Session>>,
+}
+
+#[async_trait::async_trait]
+impl SessionManager for InMemorySessionManager {
+    async fn create(&self, session_id: &str, user_id: Option<&str>) -> anyhow::Result<Session> {
+        let mut guard = self.sessions.lock().unwrap();
+
+        if guard.contains_key(session_id) {
+            anyhow::bail!("session already exists: {session_id}");
+        }
+        let session = Session::new(session_id.to_owned(), user_id.map(str::to_owned));
+
+        guard.insert(session_id.to_owned(), session.clone());
+        Ok(session)
+    }
+    async fn get(&self, session_id: &str) -> anyhow::Result<Option<Session>> {
+        let session = self.sessions.lock().unwrap().get(session_id).cloned();
+        Ok(session)
+    }
+
+    async fn save(&self, session: Session) -> anyhow::Result<()> {
+        self.sessions
+            .lock()
+            .unwrap()
+            .insert(session.session_id.clone(), session);
+        Ok(())
+    }
+    async fn get_or_create(
+        &self,
+        session_id: &str,
+        user_id: Option<&str>,
+    ) -> anyhow::Result<Session> {
+        let mut guard = self.sessions.lock().unwrap();
+        let session = guard
+            .entry(session_id.to_owned())
+            .or_insert_with(|| Session::new(session_id.to_owned(), user_id.map(str::to_string)))
+            .clone();
+        Ok(session)
+    }
+}
+
+impl InMemorySessionManager {
+    pub fn new() -> Self {
+        InMemorySessionManager {
+            sessions: Mutex::new(HashMap::new()),
+        }
+    }
+}

@@ -1,9 +1,14 @@
 use std::sync::Arc;
 
-use ai_agent::{agent::Agent, callback::{approval::ApprovalCallback, search_compressor::SearchCompressorCallback}, constant::{self, GPT_4O_MINI_MODEL, VISION_MODEL}, tools::build_file_explorer_toolbox};
+use ai_agent::{
+    agent::Agent,
+    callback::{approval::ApprovalCallback, search_compressor::SearchCompressorCallback},
+    constant::{self, GPT_4O_MINI_MODEL, VISION_MODEL},
+    tools::build_file_explorer_toolbox,
+};
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
-
+use uuid::Uuid;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -29,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
         .with_after_tool_callback(Arc::new(SearchCompressorCallback));
 
     let result = agent
-        .run(r#"读一下这个压缩包里的候选人信息和职位要求，判断出最合适的候选人。注意仅仅查看该压缩包内的内容，不要扩大查看范围。
+        .run(&Uuid::new_v4().to_string(),r#"读一下这个压缩包里的候选人信息和职位要求，判断出最合适的候选人。注意仅仅查看该压缩包内的内容，不要扩大查看范围。
 确认完之后，把 job_description.txt 删掉，因为信息已经用完了，不需要再占地方。
 压缩包路径：./candidate.zip"#)
         .await?;
@@ -38,7 +43,7 @@ async fn main() -> anyhow::Result<()> {
     println!(
         "\n本次执行一共走了 {} 步，记录了 {} 条 Event",
         result.context.current_step,
-        result.context.events.len()
+        result.context.events().len()
     );
 
     Ok(())

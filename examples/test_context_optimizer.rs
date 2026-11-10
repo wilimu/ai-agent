@@ -7,6 +7,8 @@ use ai_agent::{
     tools::{ToolBox, build_toolbox},
 };
 
+use uuid::Uuid;
+
 const SYSTEM_PROMPT: &str = "你是一个善用网页搜索的研究助手。请每次只调用一次 web_search，\
 拿到结果、看完之后再决定下一步搜什么，不要一次性并行发起多个搜索。\
 至少搜索 5 轮，每轮换一个不同角度或关键词，最后再给出总结。";
@@ -23,7 +25,7 @@ async fn run_demo(
         .with_max_steps(16)
         .with_before_llm_callback(callback);
 
-    let result = agent.run(QUERY).await?;
+    let result = agent.run(&Uuid::new_v4().to_string(), QUERY).await?;
 
     println!("\n最终回答: {}", result.output);
     println!("累计消耗 tokens: {}", result.context.usage.total_tokens);

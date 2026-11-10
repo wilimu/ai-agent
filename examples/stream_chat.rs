@@ -3,10 +3,8 @@ use std::{any, print, result};
 use ai_agent::{
     constant,
     llm::{
-        complete,
         semaphore::get_semaphore,
         stream::{self, chat_stream_with_retry},
-        structured,
     },
 };
 use futures::StreamExt;

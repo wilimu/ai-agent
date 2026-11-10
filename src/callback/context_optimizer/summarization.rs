@@ -38,7 +38,7 @@ impl Summarization {
         };
 
         let last_summary_idx = context
-            .state
+            .state_mut()
             .get("last_summary_idx")
             .and_then(Value::as_u64)
             .map(|v| v as usize)
@@ -59,7 +59,7 @@ impl Summarization {
         let new_summary_chunk = self.generate_summary(&history_text).await?;
 
         let existing_summary = context
-            .state
+            .state_mut()
             .get("context_summary")
             .and_then(Value::as_str)
             .map(str::to_string);
@@ -73,12 +73,12 @@ impl Summarization {
 
         request.append_instructions(format!("[summary of earlier process]\n{full_summary}"));
 
-        context.state.insert(
+        context.state_mut().insert(
             "last_summary_idx".to_string(),
             Value::from((summary_end - 1) as u64),
         );
         context
-            .state
+            .state_mut()
             .insert("context_summary".to_string(), Value::String(full_summary));
 
         Ok(())

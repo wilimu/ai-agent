@@ -20,6 +20,7 @@ use crate::{
         callback::{AfterToolCallback, BeforeToolCallBack, ToolCallView},
         llm_request::{self, BeforeLlmCallback, LlmRequest},
     },
+    session::manager::{InMemorySessionManager, SessionManager},
     tools::ToolBox,
 };
 
@@ -35,6 +36,7 @@ pub struct StructuredAgentResult<T> {
 }
 pub struct Agent {
     model: String,
+    session_manager: Box<dyn SessionManager>,
     instruction: Option<String>,
     toolbox: Arc<ToolBox>,
     max_steps: u32,
@@ -51,6 +53,7 @@ impl Agent {
     ) -> Self {
         Agent {
             model: model.into(),
+            session_manager: Box::new(InMemorySessionManager::new()),
             instruction: instruction.map(Into::into),
             toolbox,
             max_steps: 10,
@@ -60,6 +63,10 @@ impl Agent {
         }
     }
 
+    pub fn with_session_manager(mut self, session_manager: impl SessionManager + 'static) -> Self {
+        self.session_manager = Box::new(session_manager);
+        self
+    }
     pub fn with_max_steps(mut self, steps: u32) -> Self {
         self.max_steps = steps;
         self
@@ -75,8 +82,9 @@ impl Agent {
         self
     }
 
-    pub async fn run(&self, user_input: &str) -> anyhow::Result<AgentResult> {
-        let mut context = ExecutionContext::default();
+    pub async fn run(&self, session_id: &str, user_input: &str) -> anyhow::Result<AgentResult> {
+        let session = self.session_manager.get_or_create(session_id, None).await?;
+        let mut context = ExecutionContext::new(session);
         let event = Event::new(
             context.execution_id.clone(),
             "user",
@@ -158,7 +166,7 @@ impl Agent {
                 ));
 
                 context.final_result = Some(content.clone());
-
+                self.session_manager.save(context.session.clone()).await?;
                 return Ok(AgentResult {
                     output: content,
                     context,
@@ -170,12 +178,14 @@ impl Agent {
 
     pub async fn run_structured<T>(
         &self,
+        session_id: &str,
         user_input: &str,
     ) -> anyhow::Result<StructuredAgentResult<T>>
     where
         T: schemars::JsonSchema + serde::de::DeserializeOwned,
     {
-        let mut context = ExecutionContext::default();
+        let session = self.session_manager.get_or_create(session_id, None).await?;
+        let mut context = ExecutionContext::new(session);
         let event = Event::new(
             context.execution_id.clone(),
             "user",
@@ -275,7 +285,7 @@ impl Agent {
                 ));
 
                 context.final_result = Some(raw_arguments);
-
+                self.session_manager.save(context.session.clone()).await?;
                 return Ok(StructuredAgentResult {
                     output: parsed,
                     context,
@@ -372,7 +382,7 @@ impl Agent {
         let mut request = LlmRequest {
             instructions: Vec::new(),
             contents: context
-                .events
+                .events()
                 .iter()
                 .flat_map(|ev| ev.contents.iter().cloned())
                 .collect(),

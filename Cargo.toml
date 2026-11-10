@@ -7,13 +7,6 @@ edition = "2024"
 name = "stream_chat"
 path = "examples/stream_chat.rs"
 
-[[example]]
-name = "tool_call"
-path = "examples/tool_call_complete.rs"
-
-[[example]]
-name = "agent_loop"
-path = "examples/agent_loop.rs"
 
 [[example]]
 name = "agent_run"
@@ -30,6 +23,10 @@ path ="examples/file_explorer.rs"
 [[example]]
 name = "test_context_optimizer"
 path ="examples/test_context_optimizer.rs"
+
+[[example]]
+name = "multi_turn"
+path ="examples/multi_turn.rs"
 
 [dependencies]
 anyhow = "1.0.104"

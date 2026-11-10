@@ -1,9 +1,6 @@
 use std::print;
 
-use ai_agent::{
-    constant,
-    llm::structured,
-};
+use ai_agent::constant;
 use anyhow::Ok;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
@@ -18,12 +15,5 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::subscriber::set_global_default(subscriber)?;
 
-    let plan = structured::chat_complete_structured(
-        constant::DEEPSEEK_V4_FLASH,
-        Some("you are a versatile asistant"),
-        "I'm going to watch World Cup of America Canada Mexio, give me a plan.",
-    )
-    .await?;
-    print!("Response: {plan:#?}.");
     Ok(())
 }

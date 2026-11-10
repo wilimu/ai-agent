@@ -4,6 +4,7 @@ use ai_agent::{agent::Agent, constant, tools::build_toolbox};
 use chrono::Local;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
+use uuid::Uuid;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -47,6 +48,7 @@ async fn main() -> anyhow::Result<()> {
     println!("\n=== Agent::run 测试 ===");
     let result = agent
         .run(
+            &Uuid::new_v4().to_string(),
             r"我想买一台 Mac Mini M4。
 
 请帮我做一个购买分析：
@@ -64,7 +66,7 @@ async fn main() -> anyhow::Result<()> {
     println!(
         "\n本次执行一共走了 {} 步，记录了 {} 条 Event（execution_id = {}）",
         result.context.current_step,
-        result.context.events.len(),
+        result.context.events().len(),
         result.context.execution_id
     );
     println!(
